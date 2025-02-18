@@ -9,6 +9,3 @@
 [submodule "abseil"]
 	path = abseil
 	url = ../abseil-cpp
-[submodule "scylla-tools"]
-	path = tools/java
-	url = ../scylla-tools-java
