@@ -103,11 +103,7 @@ fedora_packages=(
     file
     dpkg-dev
     curl
-    rust
-    cargo
     rapidxml-devel
-    rust-std-static-wasm32-wasi
-    wabt
     binaryen
     lcov
 )

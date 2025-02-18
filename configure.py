@@ -661,20 +661,6 @@ raft_tests = set([
     'test/raft/failure_detector_test',
 ])
 
-wasms = set([
-    'wasm/return_input.wat',
-    'wasm/test_complex_null_values.wat',
-    'wasm/test_fib_called_on_null.wat',
-    'wasm/test_functions_with_frozen_types.wat',
-    'wasm/test_mem_grow.wat',
-    'wasm/test_pow.wat',
-    'wasm/test_short_ints.wat',
-    'wasm/test_types_with_and_without_nulls.wat',
-    'wasm/test_UDA_final.wat',
-    'wasm/test_UDA_scalar.wat',
-    'wasm/test_word_double.wat',
-])
-
 apps = set([
     'scylla',
 ])
@@ -1164,9 +1150,6 @@ scylla_core = (['message/messaging_service.cc',
                 'mutation_writer/feed_writers.cc',
                 'lang/manager.cc',
                 'lang/lua.cc',
-                'lang/wasm.cc',
-                'lang/wasm_alien_thread_runner.cc',
-                'lang/wasm_instance_cache.cc',
                 'service/raft/group0_state_machine.cc',
                 'service/raft/group0_state_machine_merger.cc',
                 'service/raft/raft_sys_table_storage.cc',
@@ -1515,21 +1498,6 @@ deps['test/raft/discovery_test'] =  ['test/raft/discovery_test.cc',
                                      'test/raft/helpers.cc',
                                      'test/lib/log.cc',
                                      'service/raft/discovery.cc'] + scylla_raft_dependencies
-
-wasm_deps = {}
-
-wasm_deps['wasm/return_input.wat'] = 'test/resource/wasm/rust/return_input.rs'
-wasm_deps['wasm/test_short_ints.wat'] = 'test/resource/wasm/rust/test_short_ints.rs'
-wasm_deps['wasm/test_complex_null_values.wat'] = 'test/resource/wasm/rust/test_complex_null_values.rs'
-wasm_deps['wasm/test_functions_with_frozen_types.wat'] = 'test/resource/wasm/rust/test_functions_with_frozen_types.rs'
-wasm_deps['wasm/test_types_with_and_without_nulls.wat'] = 'test/resource/wasm/rust/test_types_with_and_without_nulls.rs'
-
-wasm_deps['wasm/test_fib_called_on_null.wat'] = 'test/resource/wasm/c/test_fib_called_on_null.c'
-wasm_deps['wasm/test_mem_grow.wat'] = 'test/resource/wasm/c/test_mem_grow.c'
-wasm_deps['wasm/test_pow.wat'] = 'test/resource/wasm/c/test_pow.c'
-wasm_deps['wasm/test_UDA_final.wat'] = 'test/resource/wasm/c/test_UDA_final.c'
-wasm_deps['wasm/test_UDA_scalar.wat'] = 'test/resource/wasm/c/test_UDA_scalar.c'
-wasm_deps['wasm/test_word_double.wat'] = 'test/resource/wasm/c/test_word_double.c'
 
 
 def get_warning_options(cxx):
@@ -1957,25 +1925,6 @@ def write_build_file(f,
             command = reloc/build_deb.sh --reloc-pkg $in --builddir $out
         rule unified
             command = unified/build_unified.sh --build-dir $builddir/$mode --unified-pkg $out
-        rule rust_header
-            command = cxxbridge --include rust/cxx.h --header $in > $out
-            description = RUST_HEADER $out
-        rule rust_source
-            command = cxxbridge --include rust/cxx.h $in > $out
-            description = RUST_SOURCE $out
-        rule cxxbridge_header
-            command = cxxbridge --header > $out
-        rule c2wasm
-            command = clang --target=wasm32 --no-standard-libraries -Wl,--export-all -Wl,--no-entry $in -o $out
-            description = C2WASM $out
-        rule rust2wasm
-            command = cargo build --target=wasm32-wasi --example=$example --locked --manifest-path=test/resource/wasm/rust/Cargo.toml --target-dir=$builddir/wasm/ $
-                && wasm-opt -Oz $builddir/wasm/wasm32-wasi/debug/examples/$example.wasm -o $builddir/wasm/$example.wasm $
-                && wasm-strip $builddir/wasm/$example.wasm
-            description = RUST2WASM $out
-        rule wasm2wat
-            command = wasm2wat $in > $out
-            description = WASM2WAT $out
         ''').format(configure_args=configure_args,
                     outdir=outdir,
                     cxx=args.cxx,
@@ -1990,17 +1939,6 @@ def write_build_file(f,
                     seastar_path=args.seastar_path,
                     ninja=ninja,
                     ragel_exec=args.ragel_exec))
-
-    for binary in sorted(wasms):
-        src = wasm_deps[binary]
-        wasm = binary[:-4] + '.wasm'
-        if src.endswith('.rs'):
-            f.write(f'build $builddir/{wasm}: rust2wasm {src} | test/resource/wasm/rust/Cargo.lock test/resource/wasm/rust/build.rs\n')
-            example_name = binary[binary.rindex('/')+1:-4]
-            f.write(f'   example = {example_name}\n')
-        else:
-            f.write(f'build $builddir/{wasm}: c2wasm {src}\n')
-        f.write(f'build $builddir/{binary}: wasm2wat $builddir/{wasm}\n')
 
     for mode in build_modes:
         modeval = modes[mode]
@@ -2319,9 +2257,6 @@ def write_build_file(f,
     )
     f.write(
             'build check: phony {}\n'.format(' '.join(['{mode}-check'.format(mode=mode) for mode in default_modes]))
-    )
-    f.write(
-            'build wasm: phony {}\n'.format(' '.join([f'$builddir/{binary}' for binary in sorted(wasms)]))
     )
     f.write(
             'build compiler-training: phony {}\n'.format(' '.join(['{mode}-compiler-training'.format(mode=mode) for mode in default_modes]))

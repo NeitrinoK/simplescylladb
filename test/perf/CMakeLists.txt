@@ -43,8 +43,7 @@ target_link_libraries(test-perf
     test-lib
     Seastar::seastar_perf_testing
     JsonCpp::JsonCpp
-    xxHash::xxhash
-    wasmtime_bindings)
+    xxHash::xxhash)
 
 add_library(perf-lib OBJECT perf.cc)
 target_include_directories(perf-lib
