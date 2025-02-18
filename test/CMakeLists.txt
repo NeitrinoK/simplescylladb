@@ -94,7 +94,6 @@ if(BUILD_TESTING)
     add_subdirectory(manual)
     add_subdirectory(unit)
     add_subdirectory(raft)
-    add_subdirectory(resource/wasm)
 
     if(CMAKE_CONFIGURATION_TYPES)
       foreach(config ${CMAKE_CONFIGURATION_TYPES})
