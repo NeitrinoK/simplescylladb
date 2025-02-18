@@ -1,3 +1,14 @@
+# Simple Scylla
+
+# Why?
+When I try to build Scylla I see a lot of additional stuff, so I remove it:
+1. Wasm support removed (Rust)
+2. Docs build support removed
+3. Java tools removed
+
+# What your really needed
+gcc-c++ boost-devel c-ares-devel fmt-devel lz4-devel gnutls-devel hwloc-devel lksctp-tools-devel numactl-devel yaml-cpp-devel protobuf-devel ragel valgrind-devel openssl openssl-devel lua-devel libdeflate-devel snappy-devel rapidjson-devel xxhash-devel libzstd-devel antlr3-C++-devel jsoncpp-devel rapidxml-devel python3-pyparsing xfsprogs-devel
+
 # Scylla
 
 [![Slack](https://img.shields.io/badge/slack-scylla-brightgreen.svg?logo=slack)](http://slack.scylladb.com)
