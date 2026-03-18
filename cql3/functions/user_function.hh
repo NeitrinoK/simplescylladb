@@ -13,7 +13,6 @@
 #include "abstract_function.hh"
 #include "scalar_function.hh"
 #include "lang/lua.hh"
-#include "lang/wasm.hh"
 #include "data_dictionary/keyspace_element.hh"
 
 namespace cql3 {
@@ -34,7 +33,7 @@ public:
         lua::runtime_config cfg;
     };
 
-    using context = std::variant<lua_context, wasm::context>;
+    using context = std::variant<lua_context>;
 
 private:
     std::vector<sstring> _arg_names;
