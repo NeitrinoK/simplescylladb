@@ -1850,7 +1850,8 @@ def get_extra_cxxflags(mode, mode_config, cxx, debuginfo):
     # 
     # It seems that we aren't losing much by disabling AssigmentTracking,
     # so for now we choose to disable it to get `coro_frame_ty` back.
-    # cxxflags.append('-Xclang -fexperimental-assignment-tracking=disabled')
+    if flag_supported(flag='-Xclang -fexperimental-assignment-tracking=disabled', compiler=cxx):
+        cxxflags.append('-Xclang -fexperimental-assignment-tracking=disabled')
 
     return cxxflags
 
