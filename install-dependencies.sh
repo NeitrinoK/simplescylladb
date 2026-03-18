@@ -270,11 +270,8 @@ while [ $# -gt 0 ]; do
 done
 
 if $PRINT_PYTHON3; then
-    if [ "$ID" != "fedora" ]; then
-        echo "Unsupported Distribution: $ID"
-        exit 1
-    fi
-    echo "${fedora_python3_packages[@]}"
+    printf -v joined 'python3-%s " "{!pip_packages[@]}"
+    echo "${fedora_python3_packages[@]}" "${joined}"
     exit 0
 fi
 
@@ -324,7 +321,7 @@ elif [ "$ID" = "fedora" ]; then
     do
         pip_constrained_packages="${pip_constrained_packages} ${package}${pip_packages[$package]}"
     done
-    pip3 install "$PIP_DEFAULT_ARGS" $pip_constrained_packages
+    # pip3 install "$PIP_DEFAULT_ARGS" $pip_constrained_packages
 
     if [ -f "$(node_exporter_fullpath)" ] && node_exporter_checksum; then
         echo "$(node_exporter_filename) already exists, skipping download"
