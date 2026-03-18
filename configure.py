@@ -603,8 +603,6 @@ scylla_tests = set([
     'test/boost/virtual_reader_test',
     'test/boost/virtual_table_mutation_source_test',
     'test/boost/virtual_table_test',
-    'test/boost/wasm_alloc_test',
-    'test/boost/wasm_test',
     'test/boost/wrapping_interval_test',
     'test/manual/ec2_snitch_test',
     'test/manual/enormous_table_scan_test',
@@ -671,7 +669,7 @@ other = set([
     'iotune',
 ])
 
-all_artifacts = apps | tests | other | wasms
+all_artifacts = apps | tests | other
 
 arg_parser = argparse.ArgumentParser('Configure scylla', add_help=False, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 arg_parser.add_argument('--out', dest='buildfile', action='store', default='build.ninja',
@@ -1164,7 +1162,6 @@ scylla_core = (['message/messaging_service.cc',
                 'service/broadcast_tables/experimental/lang.cc',
                 'tasks/task_handler.cc',
                 'tasks/task_manager.cc',
-                'rust/wasmtime_bindings/src/lib.rs',
                 'utils/to_string.cc',
                 'service/topology_state_machine.cc',
                 'service/topology_mutation.cc',
@@ -2001,10 +1998,9 @@ def write_build_file(f,
               description = RUST_LIB $out
             ''').format(mode=mode, antlr3_exec=args.antlr3_exec, fmt_lib=fmt_lib, test_repeat=args.test_repeat, test_timeout=args.test_timeout, **modeval))
         f.write(
-            'build {mode}-build: phony {artifacts} {wasms}\n'.format(
+            'build {mode}-build: phony {artifacts}\n'.format(
                 mode=mode,
-                artifacts=str.join(' ', ['$builddir/' + mode + '/' + x for x in sorted(build_artifacts - wasms)]),
-                wasms = str.join(' ', ['$builddir/' + x for x in sorted(build_artifacts & wasms)]),
+                artifacts=str.join(' ', ['$builddir/' + mode + '/' + x for x in sorted(build_artifacts)]),
             )
         )
         include_cxx_target = f'{mode}-build' if not args.dist_only else ''
@@ -2021,7 +2017,7 @@ def write_build_file(f,
         seastar_testing_dep = f'$builddir/{mode}/seastar/libseastar_testing.{seastar_lib_ext}'
         abseil_dep = ' '.join(f'$builddir/{mode}/abseil/{lib}' for lib in abseil_libs)
         for binary in sorted(build_artifacts):
-            if binary in other or binary in wasms:
+            if binary in other:
                 continue
             srcs = deps[binary]
             objs = ['$builddir/' + mode + '/' + src.replace('.cc', '.o')
@@ -2103,10 +2099,9 @@ def write_build_file(f,
         )
 
         f.write(
-            'build {mode}-test: test.{mode} {test_executables} $builddir/{mode}/scylla {wasms}\n'.format(
+            'build {mode}-test: test.{mode} {test_executables} $builddir/{mode}/scylla\n'.format(
                 mode=mode,
                 test_executables=' '.join(['$builddir/{}/{}'.format(mode, binary) for binary in sorted(tests)]),
-                wasms=' '.join([f'$builddir/{binary}' for binary in sorted(wasms)]),
             )
         )
         f.write(
